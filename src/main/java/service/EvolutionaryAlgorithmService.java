@@ -40,31 +40,7 @@ public class EvolutionaryAlgorithmService {
         cumsum(mutationVector);
     }
 
-    private Matrix<Double> normalizeData(Matrix<Double> data){
-        Matrix<Double> normalizedMatrix = new Matrix<>(data.getRows(),data.getColumns(),0.0);
-        ArrayList<Double> columnAverage = new ArrayList<>();
-        ArrayList<Double> deviation = new ArrayList<>();
-        for(int i=0;i<data.getColumns();i++){
-            columnAverage.add(0.0);
-            deviation.add(0.0);
-        }
-        for(int i=0;i<data.getRows();i++)
-            for(int j=0;j<data.getColumns();j++)
-                columnAverage.set(j,(columnAverage.get(j)+data.get(i,j)));
-        for(int i=0;i<data.getColumns();i++){
-            columnAverage.set(i,(columnAverage.get(i)/data.getRows()));
-        }
-        for(int i=0;i<data.getRows();i++)
-            for(int j=0;j<data.getColumns();j++)
-                deviation.set(j,(deviation.get(j)+Math.pow(data.get(i,j)-columnAverage.get(j),2)));
-        for(int i=0;i<data.getColumns();i++){
-            deviation.set(i,Math.sqrt(deviation.get(i)/(data.getRows()-1)));
-        }
-        for(int i=0;i<data.getRows();i++)
-            for(int j=0;j<data.getColumns();j++)
-                normalizedMatrix.set((data.get(i,j)-columnAverage.get(j))/deviation.get(j),i,j);
-        return normalizedMatrix;
-    }
+
 
 
     /**
@@ -136,7 +112,7 @@ public class EvolutionaryAlgorithmService {
     private  void mutate(Chromosome offspring){
         for(int i=0;i<offspring.getValues().size();i++){
             Double mutationOffset =  (double) (vasInv(mutationVector, Math.random()));
-            mutationOffset/=100;
+            mutationOffset/=1000;
             Boolean mutationDirection = Math.random()<0.5;
             Double mutatedValue;
             if(mutationDirection)
@@ -173,6 +149,18 @@ public class EvolutionaryAlgorithmService {
         return minPosition;
     }
 
+    private ArrayList<Double> sortChances(ArrayList<Double> errorList,ArrayList<Double> chance){
+        for(int i=0;i<chance.size();i++){
+            for(int j=0;j<chance.size();j++){
+                if(i!=j && errorList.get(i)<errorList.get(j) && chance.get(i)<chance.get(j)){
+                    Double aux = chance.get(i);
+                    chance.set(i,chance.get(j));
+                    chance.set(j,aux);
+                }
+            }
+        }
+        return chance;
+    }
 
     /**
      * The function determines the minimum value in an 1 or 2 dimensional array using an evolutionary algorithm
@@ -183,7 +171,7 @@ public class EvolutionaryAlgorithmService {
      */
     public ArrayList<Double> solve(Integer numberOfGenerations, Integer populationSize, Integer mutatianRate, Integer resultColumn){
         initMutationVector(10-mutatianRate);
-        Matrix<Double> normalizedData = normalizeData(repo.getDataMatrix());
+        Matrix<Double> normalizedData = FileRepo.normalizeData(repo.getDataMatrix());
         Matrix<Double> normalizedResults = repo.getResultsMatrix();
         //Matrix<Double> normalizedResults = normalizeData(repo.getResultsMatrix());
         Population p = new Population();
@@ -197,12 +185,13 @@ public class EvolutionaryAlgorithmService {
         }
         for(int i=0;i<numberOfGenerations;i++){
             Population offsprings = new Population();
-            LinkedList<Double> chance = new LinkedList<>();
+            ArrayList<Double> chance = new ArrayList<>();
             ArrayList<Double> errorList = evaluatePopulation(normalizedData,normalizedResults,p,resultColumn);
             Double errorSum = errorList.stream().mapToDouble(Double::doubleValue).sum();
             for(Double elem:errorList){
-                chance.addFirst(elem/errorSum);
+                chance.add(elem/errorSum);
             }
+            sortChances(errorList,chance);
             cumsum(chance);
             for(int j=0;j<populationSize-1;j++) {
                 Chromosome dad = p.getChromosome(vasInv(chance, Math.random()));
@@ -224,7 +213,7 @@ public class EvolutionaryAlgorithmService {
 
     public Double testAccuracy(ArrayList<Double> factor, Integer resultColumn){
         Integer ok = 0;
-        Matrix<Double> normalizedTestData = normalizeData(repo.getTestDataMatrix());
+        Matrix<Double> normalizedTestData = FileRepo.normalizeData(repo.getTestDataMatrix());
         Matrix<Double> normalizedTestDataResults = repo.getTestResultsMatrix();
         for(int i=0;i<normalizedTestData.getRows();i++){
             Double resultValue = factor.get(0);

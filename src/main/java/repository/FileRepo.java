@@ -4,6 +4,7 @@ import model.Matrix;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class FileRepo {
@@ -46,6 +47,32 @@ public class FileRepo {
         catch (FileNotFoundException | NullPointerException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Matrix<Double> normalizeData(Matrix<Double> data){
+        Matrix<Double> normalizedMatrix = new Matrix<>(data.getRows(),data.getColumns(),0.0);
+        ArrayList<Double> columnAverage = new ArrayList<>();
+        ArrayList<Double> deviation = new ArrayList<>();
+        for(int i=0;i<data.getColumns();i++){
+            columnAverage.add(0.0);
+            deviation.add(0.0);
+        }
+        for(int i=0;i<data.getRows();i++)
+            for(int j=0;j<data.getColumns();j++)
+                columnAverage.set(j,(columnAverage.get(j)+data.get(i,j)));
+        for(int i=0;i<data.getColumns();i++){
+            columnAverage.set(i,(columnAverage.get(i)/data.getRows()));
+        }
+        for(int i=0;i<data.getRows();i++)
+            for(int j=0;j<data.getColumns();j++)
+                deviation.set(j,(deviation.get(j)+Math.pow(data.get(i,j)-columnAverage.get(j),2)));
+        for(int i=0;i<data.getColumns();i++){
+            deviation.set(i,Math.sqrt(deviation.get(i)/(data.getRows()-1)));
+        }
+        for(int i=0;i<data.getRows();i++)
+            for(int j=0;j<data.getColumns();j++)
+                normalizedMatrix.set((data.get(i,j)-columnAverage.get(j))/deviation.get(j),i,j);
+        return normalizedMatrix;
     }
 
     public Matrix<Double> getDataMatrix() {

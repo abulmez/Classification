@@ -3,12 +3,15 @@ package ui;
 import model.Matrix;
 import repository.FileRepo;
 import service.EvolutionaryAlgorithmService;
+import service.StochasticGradientDescentService;
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class UI {
 
     private EvolutionaryAlgorithmService evolutionaryAlgorithmService;
+    private StochasticGradientDescentService stochasticGradientDescentService;
 
     private Scanner sc;
     public UI(){
@@ -23,7 +26,7 @@ public class UI {
         int x=2;
         FileRepo repo = new FileRepo("column_3C_weka_data.arff", "column_3C_weka_test.arff");
         evolutionaryAlgorithmService = new EvolutionaryAlgorithmService(repo);
-
+        stochasticGradientDescentService = new StochasticGradientDescentService(repo);
 
 
         Boolean merge = true;
@@ -60,32 +63,20 @@ public class UI {
 
 
                 case 1: {
-                    /*
-                    System.out.println("Dati rezultatul pentru care se va efectua regresia:");
-                    System.out.println("1.motor_UPDRS");
-                    System.out.println("2.total_UPDRS");
-                    int resultColumn = sc.nextInt();
+
+                    int resultColumn = 0;
                     System.out.println("Dati gradul de invatare:");
                     Double learningRate = sc.nextDouble();
                     System.out.println("Dati numarul de iteratii:");
                     int numberOfIterations = sc.nextInt();
-                    ArrayList<Double> result = stochasticGradientDescentService.solve(numberOfIterations, learningRate, resultColumn-1);
+                    ArrayList<Double> result = stochasticGradientDescentService.solve(numberOfIterations, learningRate, resultColumn);
                     System.out.println("Coeficientii determinati:");
                     for (Double rez : result) {
                         System.out.print(rez + " ");
                     }
                     System.out.println();
-                    System.out.println("Valoarea reala | Valoarea Determinata | Eroare");
                     System.out.println();
-                    Matrix<Double> evaluationResult = evolutionaryAlgorithmService.test(result, resultColumn - 1);
-                    Double error = 0.0;
-                    for (int i = 0; i < evolutionaryAlgorithmService.repo.getTestResultMatrixNumberOfRows(); i++) {
-                        System.out.println(evaluationResult.get(i, 0) + " " + evaluationResult.get(i, 1) + " " + Math.abs(evaluationResult.get(i, 0) - evaluationResult.get(i, 1)));
-                        error += Math.abs(evaluationResult.get(i, 0) - evaluationResult.get(i, 1));
-                    }
-                    System.out.println();
-                    System.out.println("Eroarea medie: "+error/evolutionaryAlgorithmService.repo.getTestResultMatrixNumberOfRows());
-                    */
+                    System.out.println("Performanta algoritmului: " + (int)(evolutionaryAlgorithmService.testAccuracy(result,resultColumn)*100)+"%");
                     break;
                 }
                 case 3: {
